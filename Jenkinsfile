@@ -1,10 +1,19 @@
-pipeline {
-    agent { docker { image 'node:16.13.1-alpine' } }
-    stages {
-        stage('build') {
-            steps {
-                sh 'node --version'
-            }
-        }
+node {
+     def app 
+     stage('clone repository') {
+      checkout scm  
     }
+     stage('Build docker Image'){
+      app = docker.build("sri28vignesh/node-demoapp")
+    }
+     stage('Test Image'){
+       app.inside {
+         sh 'echo "TEST PASSED"'
+      }  
+    }
+     stage('Push Image'){
+       docker.withRegistry('https://registry.hub.docker.com', 'git') {            
+       app.push("${env.BUILD_NUMBER}")            
+       app.push("latest")   
+   }
 }
